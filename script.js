@@ -80,7 +80,7 @@ function updatePromille() {
 function addDrink() {
   
   const now = Date.now();
-  const amount = parseFloat(document.getElementById("amount").value);
+  const amount = amountValue;
   const alcVol = parseFloat(document.getElementById("alcohol").value);
   const type = drinksData[currentDrinkIndex].type;
 
@@ -345,4 +345,70 @@ function makeSliderWithVerticalDistanceSensitivity(sliderId, normalScale = 1, mi
   slider.addEventListener("pointercancel", stop);
   slider.addEventListener("pointerleave", stop);
 }
+// Custom Slider Variablen
+const customSlider = document.getElementById("customSlider");
+const customThumb = document.getElementById("customSliderThumb");
+const customFill = document.getElementById("customSliderFill");
+
+const minAmount = 0.02;
+const maxAmount = 1;
+const stepAmount = 0.01;
+let amountValue = 0.5; // Anfangswert
+
+let dragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragStartValue = amountValue;
+
+function updateCustomSliderUI() {
+  const percent = ((amountValue - minAmount) / (maxAmount - minAmount)) * 100;
+  customFill.style.width = percent + "%";
+  customThumb.style.left = percent + "%";
+  document.getElementById("amountLabel").innerText = amountValue.toFixed(2);
+}
+
+customSlider.addEventListener("pointerdown", (e) => {
+  dragging = true;
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+  dragStartValue = amountValue;
+  customThumb.setPointerCapture(e.pointerId);
+  e.preventDefault();
+});
+
+customSlider.addEventListener("pointermove", (e) => {
+  if (!dragging) return;
+
+  const dx = e.clientX - dragStartX;
+  const dy = Math.abs(e.clientY - dragStartY);
+
+  const sliderWidth = customSlider.clientWidth;
+  const maxDy = 100;
+  const scaleCurve = 2.5;
+  let verticalFactor = Math.pow(Math.max(0, 1 - dy / maxDy), scaleCurve);
+  verticalFactor = Math.max(verticalFactor, 0.1);
+
+  const fractionMoved = dx / sliderWidth;
+
+  let newValue = dragStartValue + fractionMoved * (maxAmount - minAmount) * verticalFactor;
+  newValue = Math.round(newValue / stepAmount) * stepAmount;
+  newValue = Math.min(maxAmount, Math.max(minAmount, newValue));
+  amountValue = newValue;
+
+  updateCustomSliderUI();
+});
+
+function stopDrag(e) {
+  dragging = false;
+  if (e.pointerId) customThumb.releasePointerCapture(e.pointerId);
+}
+
+customSlider.addEventListener("pointerup", stopDrag);
+customSlider.addEventListener("pointercancel", stopDrag);
+customSlider.addEventListener("pointerleave", stopDrag);
+
+// Initiales Setzen des Sliders bei Laden:
+window.addEventListener("load", () => {
+  updateCustomSliderUI();
+});
 
