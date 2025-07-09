@@ -200,7 +200,8 @@ img.style.transition = "none";
 img.addEventListener("pointermove", (e) => {
 if (!isDragging) return;
 const dx = e.clientX - startX;
-img.style.transform = translateX(${dx}px);
+img.style.transform = `translateX(${dx}px)`;
+
 });
 
 img.addEventListener("pointerup", (e) => {
