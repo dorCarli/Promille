@@ -298,6 +298,49 @@ function makeSliderWithVerticalDistanceSensitivity(sliderId, normalScale = 1, mi
     startY = e.clientY;
     startValue = parseFloat(slider.value);
 
-    // Für Mobilgeräte verhindern, dass das Scrollen während Ziehen den Slider beeinflusst
+    slider.setPointerCapture(e.pointerId); // Wichtig, um Events auf Slider zu fixieren
+
     e.preventDefault();
+
+    // Optional Debug:
+    // console.log("Pointer down", startX, startY, startValue);
   });
+
+  slider.addEventListener("pointermove", (e) => {
+    if (!isHolding) return;
+
+    const dx = e.clientX - startX;
+    const dy = Math.abs(e.clientY - startY);
+
+    const sliderWidth = slider.offsetWidth;
+
+    const maxDy = 100;
+    let verticalFactor = 1 - Math.min(dy, maxDy) / maxDy;
+    verticalFactor = Math.max(verticalFactor, minScale);
+
+    const fractionMoved = dx / sliderWidth;
+
+    const valueChange = fractionMoved * range * normalScale * verticalFactor;
+
+    let newValue = startValue + valueChange;
+
+    newValue = Math.round(newValue / step) * step;
+
+    newValue = Math.max(min, Math.min(max, newValue));
+
+    slider.value = newValue.toFixed(2);
+    updateDrinkLabels();
+
+    // Optional Debug:
+    // console.log("Pointer move", dx, dy, verticalFactor, newValue);
+  });
+
+  const stop = () => {
+    isHolding = false;
+  };
+
+  slider.addEventListener("pointerup", stop);
+  slider.addEventListener("pointercancel", stop);
+  slider.addEventListener("pointerleave", stop);
+}
+
