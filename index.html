@@ -14,7 +14,7 @@
 <body>
 
   <section id="status" style="display:none" onclick="animatePromilleButton()()">
-  <h3>Promille: <span id="promille">0.00</span> ‰</h3>
+  <h3>Promitte: <span id="promille">0.00</span> ‰</h3>
   </section>
 
   <section id="setup">
@@ -40,17 +40,13 @@
       <img id="drinkImage" src="images/bier.png" alt="Getränk" class="drinkImage" draggable="false">
     </div>
     <div id="drinkDetails">
-  <label>Menge (Liter): <span id="amountLabel">0.50</span> l</label>
-  <div id="customSlider" style="position: relative; width: 100%; height: 30px; background: #444; border-radius: 6px; margin-top: 4px;">
-    <div id="customSliderFill" style="position: absolute; left: 0; top: 0; height: 100%; background: #fff; border-radius: 6px; width: 50%;"></div>
-    <div id="customSliderThumb" style="position: absolute; top: 50%; width: 30px; height: 30px; background: white; border-radius: 50%; transform: translate(-50%, -50%); touch-action:none; cursor: pointer;"></div>
-  </div>
-
+  <label>Menge (Liter): <span id="amountLabel">0.5</span> l
+    <input type="range" id="amount" min="0.02" max="1" step="0.01" value="0.5">
+  </label>
   <label>Alkoholgehalt: <span id="alcLabel">5.0</span> %
     <input type="range" id="alcohol" min="1" max="60" step="0.1" value="5">
   </label>
-</div>
-
+  </div>
     <button id="addDrinkBtn" onclick="addDrink()">Trinken</button>
   </section>
 
