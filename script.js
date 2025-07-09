@@ -234,6 +234,8 @@ window.onload = () => {
     document.getElementById("drinks").style.display = "block";
     document.getElementById("status").style.display = "block";
   }
+  makeSliderWithPrecisionHold("amount");
+  makeSliderWithPrecisionHold("alcohol", 1, 0.2); // für feinfühligere Steuerung auch beim Alkoholgehalt
 
   drinks = JSON.parse(localStorage.getItem("drinks") || "[]");
 
@@ -278,3 +280,62 @@ buttons.forEach(btn => {
     btn.classList.add('shake-bottom');      // Animation hinzufügen
   });
 });
+function makeSliderWithPrecisionHold(sliderId, normalScale = 1, fineScale = 0.2, holdTime = 1000) {
+  const slider = document.getElementById(sliderId);
+  let isHolding = false;
+  let startX = 0;
+  let startValue = 0;
+  let holdTimer;
+  let scale = normalScale;
+
+  const min = parseFloat(slider.min);
+  const max = parseFloat(slider.max);
+  const step = parseFloat(slider.step) || 0.01;
+  const range = max - min;
+
+  slider.addEventListener("pointerdown", (e) => {
+    isHolding = true;
+    startX = e.clientX;
+    startValue = parseFloat(slider.value);
+    scale = normalScale;
+
+    holdTimer = setTimeout(() => {
+      scale = fineScale;
+    }, holdTime);
+
+    e.preventDefault();
+  });
+
+  slider.addEventListener("pointermove", (e) => {
+    if (!isHolding) return;
+
+    const dx = e.clientX - startX;
+
+    // Skaliere dx auf Sliderbereich (z. B. dx=100px => Wertänderung über ganzen Bereich)
+    const sliderWidth = slider.offsetWidth;
+    const fractionMoved = dx / sliderWidth;
+
+    const valueChange = fractionMoved * range * scale;
+
+    let newValue = startValue + valueChange;
+
+    // Auf Step runden
+    newValue = Math.round(newValue / step) * step;
+
+    // Begrenzen
+    newValue = Math.max(min, Math.min(max, newValue));
+
+    slider.value = newValue.toFixed(2);
+    updateDrinkLabels();
+  });
+
+  const stop = () => {
+    isHolding = false;
+    clearTimeout(holdTimer);
+  };
+
+  slider.addEventListener("pointerup", stop);
+  slider.addEventListener("pointercancel", stop);
+  slider.addEventListener("pointerleave", stop);
+}
+
