@@ -40,13 +40,13 @@
       <img id="drinkImage" src="images/bier.png" alt="Getränk" class="drinkImage" draggable="false">
     </div>
     <div id="drinkDetails">
-      <label>Menge (Liter): <span id="amountLabel">0.5</span> l
-        <input type="range" id="amount" min="0.02" max="1" step="0.01" value="0.5" oninput="updateDrinkLabels()">
-      </label>
-      <label>Alkoholgehalt: <span id="alcLabel">5.0</span> %
-        <input type="range" id="alcohol" min="1" max="60" step="0.1" value="5" oninput="updateDrinkLabels()">
-      </label>
-    </div>
+  <label>Menge (Liter): <span id="amountLabel">0.5</span> l
+    <input type="range" id="amount" min="0.02" max="1" step="0.01" value="0.5">
+  </label>
+  <label>Alkoholgehalt: <span id="alcLabel">5.0</span> %
+    <input type="range" id="alcohol" min="1" max="60" step="0.1" value="5">
+  </label>
+  </div>
     <button id="addDrinkBtn" onclick="addDrink()">Trinken</button>
   </section>
 
