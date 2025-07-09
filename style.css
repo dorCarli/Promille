@@ -284,3 +284,9 @@ tbody tr:nth-child(odd) {
             transform: scale3d(1, 1, 1);
   }
 }
+input[type="range"] {
+  touch-action: none;     /* verhindert native Scroll- und Zoom-Effekte */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
