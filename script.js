@@ -234,8 +234,8 @@ window.onload = () => {
     document.getElementById("drinks").style.display = "block";
     document.getElementById("status").style.display = "block";
   }
-  makeSliderWithPrecisionHold("amount");
-  makeSliderWithPrecisionHold("alcohol", 1, 0.2); // für feinfühligere Steuerung auch beim Alkoholgehalt
+  makeSliderWithVerticalDistanceSensitivity("amount");
+  makeSliderWithVerticalDistanceSensitivity("alcohol");
 
   drinks = JSON.parse(localStorage.getItem("drinks") || "[]");
 
@@ -280,13 +280,12 @@ buttons.forEach(btn => {
     btn.classList.add('shake-bottom');      // Animation hinzufügen
   });
 });
-function makeSliderWithPrecisionHold(sliderId, normalScale = 1, fineScale = 0.2, holdTime = 1000) {
+function makeSliderWithVerticalDistanceSensitivity(sliderId, normalScale = 1, minScale = 0.1) {
   const slider = document.getElementById(sliderId);
   let isHolding = false;
   let startX = 0;
+  let startY = 0;
   let startValue = 0;
-  let holdTimer;
-  let scale = normalScale;
 
   const min = parseFloat(slider.min);
   const max = parseFloat(slider.max);
@@ -296,13 +295,10 @@ function makeSliderWithPrecisionHold(sliderId, normalScale = 1, fineScale = 0.2,
   slider.addEventListener("pointerdown", (e) => {
     isHolding = true;
     startX = e.clientX;
+    startY = e.clientY;
     startValue = parseFloat(slider.value);
-    scale = normalScale;
 
-    holdTimer = setTimeout(() => {
-      scale = fineScale;
-    }, holdTime);
-
+    // Für Mobilgeräte verhindern, dass das Scrollen während Ziehen den Slider beeinflusst
     e.preventDefault();
   });
 
@@ -310,12 +306,21 @@ function makeSliderWithPrecisionHold(sliderId, normalScale = 1, fineScale = 0.2,
     if (!isHolding) return;
 
     const dx = e.clientX - startX;
+    const dy = Math.abs(e.clientY - startY);
 
-    // Skaliere dx auf Sliderbereich (z. B. dx=100px => Wertänderung über ganzen Bereich)
+    // Slider-Breite
     const sliderWidth = slider.offsetWidth;
+
+    // Vertikale Distanz: Je größer dy, desto kleiner die Sensitivität linear bis minScale
+    // Beispiel: Ab 100px vertikal ist Sensitivität minScale
+    const maxDy = 100;
+    let verticalFactor = 1 - Math.min(dy, maxDy) / maxDy;
+    verticalFactor = Math.max(verticalFactor, minScale);
+
+    // Horizontaler Wert-Änderungsfaktor mit vertikalem Faktor multipliziert
     const fractionMoved = dx / sliderWidth;
 
-    const valueChange = fractionMoved * range * scale;
+    const valueChange = fractionMoved * range * normalScale * verticalFactor;
 
     let newValue = startValue + valueChange;
 
@@ -331,7 +336,6 @@ function makeSliderWithPrecisionHold(sliderId, normalScale = 1, fineScale = 0.2,
 
   const stop = () => {
     isHolding = false;
-    clearTimeout(holdTimer);
   };
 
   slider.addEventListener("pointerup", stop);
