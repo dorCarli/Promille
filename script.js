@@ -223,6 +223,8 @@ img.addEventListener("pointercancel", () => {
 
 
 window.onload = () => {
+  makeSliderWithVerticalDistanceSensitivity("amount");
+  makeSliderWithVerticalDistanceSensitivity("alcohol");
   const saved = localStorage.getItem("userData");
   if (saved) {
     userData = JSON.parse(saved);
@@ -234,8 +236,6 @@ window.onload = () => {
     document.getElementById("drinks").style.display = "block";
     document.getElementById("status").style.display = "block";
   }
-  makeSliderWithVerticalDistanceSensitivity("amount");
-  makeSliderWithVerticalDistanceSensitivity("alcohol");
 
   drinks = JSON.parse(localStorage.getItem("drinks") || "[]");
 
@@ -301,45 +301,3 @@ function makeSliderWithVerticalDistanceSensitivity(sliderId, normalScale = 1, mi
     // Für Mobilgeräte verhindern, dass das Scrollen während Ziehen den Slider beeinflusst
     e.preventDefault();
   });
-
-  slider.addEventListener("pointermove", (e) => {
-    if (!isHolding) return;
-
-    const dx = e.clientX - startX;
-    const dy = Math.abs(e.clientY - startY);
-
-    // Slider-Breite
-    const sliderWidth = slider.offsetWidth;
-
-    // Vertikale Distanz: Je größer dy, desto kleiner die Sensitivität linear bis minScale
-    // Beispiel: Ab 100px vertikal ist Sensitivität minScale
-    const maxDy = 100;
-    let verticalFactor = 1 - Math.min(dy, maxDy) / maxDy;
-    verticalFactor = Math.max(verticalFactor, minScale);
-
-    // Horizontaler Wert-Änderungsfaktor mit vertikalem Faktor multipliziert
-    const fractionMoved = dx / sliderWidth;
-
-    const valueChange = fractionMoved * range * normalScale * verticalFactor;
-
-    let newValue = startValue + valueChange;
-
-    // Auf Step runden
-    newValue = Math.round(newValue / step) * step;
-
-    // Begrenzen
-    newValue = Math.max(min, Math.min(max, newValue));
-
-    slider.value = newValue.toFixed(2);
-    updateDrinkLabels();
-  });
-
-  const stop = () => {
-    isHolding = false;
-  };
-
-  slider.addEventListener("pointerup", stop);
-  slider.addEventListener("pointercancel", stop);
-  slider.addEventListener("pointerleave", stop);
-}
-
