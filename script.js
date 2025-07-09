@@ -315,8 +315,10 @@ function makeSliderWithVerticalDistanceSensitivity(sliderId, normalScale = 1, mi
     const sliderWidth = slider.offsetWidth;
 
     const maxDy = 100;
-    let verticalFactor = 1 - Math.min(dy, maxDy) / maxDy;
-    verticalFactor = Math.max(verticalFactor, minScale);
+    const scaleCurve = 2.5; // Je höher, desto stärker "Nachhink"-Effekt
+  let verticalFactor = Math.pow(Math.max(0, 1 - dy / maxDy), scaleCurve);
+  verticalFactor = Math.max(verticalFactor, minScale); // niemals zu langsam
+
 
     const fractionMoved = dx / sliderWidth;
 
