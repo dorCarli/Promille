@@ -2,11 +2,10 @@
 <html lang="de">
 <head>
   <base href="/Promille/">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Meine App">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8" />
   <title>Promille Rechner</title>
   <link rel="manifest" href="manifest.json">
@@ -15,7 +14,7 @@
 <body>
 
   <section id="status" style="display:none" onclick="animatePromilleButton()">
-  <h3>Promille: <span id="promille">0.00</span> ‰</h3>
+    <h3>Promille: <span id="promille">0.00</span> ‰</h3>
   </section>
 
   <section id="setup">
@@ -32,7 +31,7 @@
         <option value="female">Weiblich</option>
       </select>
     </label>
-    <button class = "largebttn" onclick="startPromilleBerechnung()">Starten</button>
+    <button class="largebttn" onclick="startPromilleBerechnung()">Starten</button>
   </section>
 
   <section id="drinks" style="display:none">
@@ -54,77 +53,86 @@
   <section id="leaderboardSection">
     <h2>Top 4 Promille-Werte</h2>
     <table>
-      <thead><tr><th>Platz</th><th>Name</th><th>Promille</th></tr></thead>
+      <thead>
+        <tr><th>Platz</th><th>Name</th><th>Promille</th></tr>
+      </thead>
       <tbody id="leaderboardBody"></tbody>
     </table>
   </section>
+  
   <div style="display:flex; gap:2%;">
     <button onclick="resetApp()" style="width:100%">Zurücksetzen</button>
   </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script src="leaderboard.js"></script>
   <script src="script.js"></script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyD43TYRuIZxI1pS_noOzlKCIEzUm8Q7FiQ",
-    authDomain: "promille-b4bd3.firebaseapp.com",
-    databaseURL: "https://promille-b4bd3-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "promille-b4bd3",
-    storageBucket: "promille-b4bd3.firebasestorage.app",
-    messagingSenderId: "627353030877",
-    appId: "1:627353030877:web:218cd951414fe996bbcb34",
-    measurementId: "G-3L9ZRZBREV"
-  };
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging.js";
 
-  const app = initializeApp(firebaseConfig);
-  const messaging = getMessaging(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyD43TYRuIZxI1pS_noOzlKCIEzUm8Q7FiQ",
+      authDomain: "promille-b4bd3.firebaseapp.com",
+      databaseURL: "https://promille-b4bd3-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "promille-b4bd3",
+      storageBucket: "promille-b4bd3.firebasestorage.app",
+      messagingSenderId: "627353030877",
+      appId: "1:627353030877:web:218cd951414fe996bbcb34",
+      measurementId: "G-3L9ZRZBREV"
+    };
 
-  // ✅ Service Worker erst nach dem Laden der Seite registrieren
-  window.addEventListener("load", () => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/Promille/firebase-messaging-sw.js')
-        .then((registration) => {
-          console.log('✅ Service Worker registriert:', registration);
-        })
-        .catch((err) => {
-          console.error('❌ Service Worker Registrierung fehlgeschlagen:', err);
-        });
-    }
-  });
+    const app = initializeApp(firebaseConfig);
+    const messaging = getMessaging(app);
 
-  // 🔑 Push Token holen
-  getToken(messaging, {
-    vapidKey: 'BLXKIJi31DHoEr083zJkotuGDcPQFmBiM5KHwXHahGpIbcLliw0pyEinaPbIg64gaM2KxIZhwH0JTxis4RDDfZs',
-    serviceWorkerRegistration: await navigator.serviceWorker.ready
-  }).then((currentToken) => {
-    if (currentToken) {
-      console.log('📲 Push Token:', currentToken);
-      const user = JSON.parse(localStorage.getItem("userData") || "{}");
-      if (user.username) {
-        const tokenRef = firebase.database().ref('fcmTokens/' + sanitizeKey(user.username));
-        tokenRef.set(currentToken);
+    // Service Worker erst nach Laden registrieren
+    window.addEventListener("load", () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/Promille/firebase-messaging-sw.js')
+          .then(registration => {
+            console.log('✅ Service Worker registriert:', registration);
+            requestPushToken(registration);
+          })
+          .catch(err => {
+            console.error('❌ Service Worker Registrierung fehlgeschlagen:', err);
+          });
       }
-    } else {
-      console.log('⚠️ Keine Berechtigung für Push-Benachrichtigungen');
+    });
+
+    // Push Token holen in async Funktion
+    async function requestPushToken(registration) {
+      try {
+        const currentToken = await getToken(messaging, {
+          vapidKey: 'BLXKIJi31DHoEr083zJkotuGDcPQFmBiM5KHwXHahGpIbcLliw0pyEinaPbIg64gaM2KxIZhwH0JTxis4RDDfZs',
+          serviceWorkerRegistration: registration
+        });
+        if (currentToken) {
+          console.log('📲 Push Token:', currentToken);
+          const user = JSON.parse(localStorage.getItem("userData") || "{}");
+          if (user.username) {
+            const tokenRef = firebase.database().ref('fcmTokens/' + sanitizeKey(user.username));
+            tokenRef.set(currentToken);
+          }
+        } else {
+          console.log('⚠️ Keine Berechtigung für Push-Benachrichtigungen');
+        }
+      } catch (err) {
+        console.error('❌ Fehler beim Token holen:', err);
+      }
     }
-  }).catch((err) => {
-    console.error('❌ Fehler beim Token holen:', err);
-  });
 
-  // 📩 Empfang von Push-Nachrichten
-  onMessage(messaging, (payload) => {
-    console.log('📬 Push-Nachricht empfangen:', payload);
-    // Optional: UI updaten oder Benachrichtigung anzeigen
-  });
+    // Empfang von Push-Nachrichten
+    onMessage(messaging, (payload) => {
+      console.log('📬 Push-Nachricht empfangen:', payload);
+      // Optional: UI updaten oder Benachrichtigung anzeigen
+    });
 
-  // 👮‍♂️ Funktion zur Sanitization (damit Firebase Keys gültig sind)
-  function sanitizeKey(key) {
-    return key.replace(/[^a-zA-Z0-9_-]/g, "_");
-  }
-</script>
+    // Sanitization-Funktion für Firebase Keys
+    function sanitizeKey(key) {
+      return key.replace(/[^a-zA-Z0-9_-]/g, "_");
+    }
+  </script>
 </body>
 </html>
