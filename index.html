@@ -65,62 +65,66 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script src="leaderboard.js"></script>
   <script src="script.js"></script>
-  <script type="module">
-    // Importiere nur das, was du brauchst
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging.js";
 
-    // Deine Firebase-Konfiguration
-    const firebaseConfig = {
-      apiKey: "AIzaSyD43TYRuIZxI1pS_noOzlKCIEzUm8Q7FiQ",
-      authDomain: "promille-b4bd3.firebaseapp.com",
-      databaseURL: "https://promille-b4bd3-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "promille-b4bd3",
-      storageBucket: "promille-b4bd3.firebasestorage.app",
-      messagingSenderId: "627353030877",
-      appId: "1:627353030877:web:218cd951414fe996bbcb34",
-      measurementId: "G-3L9ZRZBREV"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyD43TYRuIZxI1pS_noOzlKCIEzUm8Q7FiQ",
+    authDomain: "promille-b4bd3.firebaseapp.com",
+    databaseURL: "https://promille-b4bd3-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "promille-b4bd3",
+    storageBucket: "promille-b4bd3.firebasestorage.app",
+    messagingSenderId: "627353030877",
+    appId: "1:627353030877:web:218cd951414fe996bbcb34",
+    measurementId: "G-3L9ZRZBREV"
+  };
 
-    // Firebase App initialisieren
-    const app = initializeApp(firebaseConfig);
+  const app = initializeApp(firebaseConfig);
+  const messaging = getMessaging(app);
 
-    // Messaging Objekt holen
-    const messaging = getMessaging(app);
-
-    // Service Worker registrieren
+  // ✅ Service Worker erst nach dem Laden der Seite registrieren
+  window.addEventListener("load", () => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/firebase-messaging-sw.js')
-      .then((registration) => {
-        console.log('Service Worker registriert:', registration);
-      }).catch((err) => {
-        console.error('Service Worker Registrierung fehlgeschlagen:', err);
-      });
+      navigator.serviceWorker.register('/Promille/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('✅ Service Worker registriert:', registration);
+        })
+        .catch((err) => {
+          console.error('❌ Service Worker Registrierung fehlgeschlagen:', err);
+        });
     }
+  });
 
-    // Token anfordern für Push-Notifications
-    getToken(messaging, { vapidKey: 'LXKIJi31DHoEr083zJkotuGDcPQFmBiM5KHwXHahGpIbcLliw0pyEinaPbIg64gaM2KxIZhwH0JTxis4RDDfZs' }).then((currentToken) => {
-      if (currentToken) {
-        console.log('Push Token:', currentToken);
-        // Token in der Datenbank speichern, z.B. Realtime Database:
-        const user = JSON.parse(localStorage.getItem("userData") || "{}");
-        if (user.username) {
-          const tokenRef = firebase.database().ref('fcmTokens/' + sanitizeKey(user.username));
-          tokenRef.set(currentToken);
-        }
-      } else {
-        console.log('Keine Berechtigung für Push-Benachrichtigungen');
+  // 🔑 Push Token holen
+  getToken(messaging, {
+    vapidKey: 'LXKIJi31DHoEr083zJkotuGDcPQFmBiM5KHwXHahGpIbcLliw0pyEinaPbIg64gaM2KxIZhwH0JTxis4RDDfZs',
+    serviceWorkerRegistration: await navigator.serviceWorker.ready
+  }).then((currentToken) => {
+    if (currentToken) {
+      console.log('📲 Push Token:', currentToken);
+      const user = JSON.parse(localStorage.getItem("userData") || "{}");
+      if (user.username) {
+        const tokenRef = firebase.database().ref('fcmTokens/' + sanitizeKey(user.username));
+        tokenRef.set(currentToken);
       }
-    }).catch((err) => {
-      console.error('Fehler beim Token holen:', err);
-    });
+    } else {
+      console.log('⚠️ Keine Berechtigung für Push-Benachrichtigungen');
+    }
+  }).catch((err) => {
+    console.error('❌ Fehler beim Token holen:', err);
+  });
 
-    // OnMessage Listener für Push-Benachrichtigungen, wenn die Seite aktiv ist
-    onMessage(messaging, (payload) => {
-      console.log('Push-Nachricht erhalten: ', payload);
-      // Hier kannst du eine lokale Benachrichtigung anzeigen oder UI updaten
-    });
-  </script>
+  // 📩 Empfang von Push-Nachrichten
+  onMessage(messaging, (payload) => {
+    console.log('📬 Push-Nachricht empfangen:', payload);
+    // Optional: UI updaten oder Benachrichtigung anzeigen
+  });
 
+  // 👮‍♂️ Funktion zur Sanitization (damit Firebase Keys gültig sind)
+  function sanitizeKey(key) {
+    return key.replace(/[^a-zA-Z0-9_-]/g, "_");
+  }
+</script>
 </body>
 </html>
