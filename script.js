@@ -188,7 +188,7 @@ function animatePromilleButton() {
   const user = JSON.parse(localStorage.getItem("userData") || "{}");
   if (!user.username) return;
 
-  fetch("https://senddrinknotification-tzjx3bgxmq-uc.a.run.app", {
+  fetch("https://us-central1-promille-b4bd3.cloudfunctions.net/sendDrinkNotification", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: user.username })
