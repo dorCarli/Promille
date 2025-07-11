@@ -256,16 +256,20 @@ function animatePromilleButton() {
   const status = document.getElementById("status");
   if (!status) return;
 
+  // Animation starten
   status.classList.add("animate");
   setTimeout(() => status.classList.remove("animate"), 300);
 
+  // Push-Nachricht senden
   const user = JSON.parse(localStorage.getItem("userData") || "{}");
   if (!user.username) return;
 
   fetch("https://us-central1-promille-b4bd3.cloudfunctions.net/sendDrinkNotification", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: user.username })
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ name: user.username }) // Wichtig: POST senden mit "name"
   })
     .then(res => {
       if (!res.ok) throw new Error("Netzwerkantwort war nicht ok");
@@ -273,6 +277,7 @@ function animatePromilleButton() {
     })
     .then(data => {
       console.log("Antwort von Cloud Function:", data);
+      // Optional: Du kannst alert() durch eine sanfte UI-Nachricht ersetzen
       alert("Benachrichtigung gesendet!");
     })
     .catch(err => {
@@ -280,7 +285,6 @@ function animatePromilleButton() {
       alert("Fehler beim Senden der Benachrichtigung.");
     });
 }
-
 
 // --- Swipe-Handling für Drink-Bild ---
 let startX = 0, isDragging = false;
