@@ -11,15 +11,6 @@ const drinksData = [
   { type: "veneziano", name: "Veneziano", img: "images/veneziano.png", amount: 0.4, alc: 10.0 }
 ];
 
-// --- Service Worker registrieren und Firebase Messaging initialisieren ---
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('firebase-messaging-sw.js')
-    .then((registration) => {
-      console.log('Service Worker registered with scope:', registration.scope);
-} else {
-  console.warn('Service Worker wird vom Browser nicht unterstützt.');
-}
-// -------------------------------------------------------------------------
 
 let currentDrinkIndex = 0;
 
