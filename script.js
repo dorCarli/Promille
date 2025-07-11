@@ -187,25 +187,6 @@ function loginAndSaveUser() {
     img.classList.remove("swipe");
   }, 3200);
 }
-
-userData = { username, weight, gender };
-localStorage.setItem("userData", JSON.stringify(userData));
-
-document.getElementById("setup").style.display = "none";
-document.getElementById("drinks").style.display = "block";
-document.getElementById("status").style.display = "block";
-
-drinks = JSON.parse(localStorage.getItem("drinks") || "[]");
-updatePromille();
-updateDrinkUI();
-const img = document.getElementById("drinkImage");
-img.classList.add("swipe");
-
-setTimeout(() => {
-img.classList.remove("swipe");
-}, 3200);
-
-}
 // Firebase Realtime Database initialisieren
 const db = firebase.database(); // Falls du Firebase DB noch nicht initialisiert hast
 
