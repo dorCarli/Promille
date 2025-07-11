@@ -12,12 +12,9 @@
 </head>
 <body>
 
-  <button id="status" class="button" style="display:none">
-  <span class="default">Promille: <span id="promille">0.00</span> ‰</span>
-  <span class="success">Gesendet!</span>
-  <div class="left"></div>
-  <div class="right"></div>
-  </button>
+  <section id="status" style="display:none" onclick="animatePromilleButton()">
+    <h3>Promille: <span id="promille">0.00</span> ‰</h3>
+  </section>
 
   <section id="setup">
     <h2>Benutzerdaten</h2>
@@ -61,7 +58,7 @@
       <tbody id="leaderboardBody"></tbody>
     </table>
   </section>
-  
+
   <div style="display:flex; gap:2%;">
     <button onclick="resetApp()" style="width:100%">Zurücksetzen</button>
   </div>
