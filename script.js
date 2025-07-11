@@ -1,3 +1,4 @@
+script.js:
 // Inhalte aus Speicher laden
 let userData = {};
 let drinks = [];
