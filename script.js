@@ -18,16 +18,15 @@ const messaging = firebase.messaging();
 // Service Worker registrieren und Push-Token holen
 navigator.serviceWorker.register('firebase-messaging-sw.js')
   .then((registration) => {
-    messaging.useServiceWorker(registration);
-
     return messaging.getToken({
-      vapidKey: "BLXKIJi31DHoEr083zJkotuGDcPQFmBiM5KHwXHahGpIbcLliw0pyEinaPbIg64gaM2KxIZhwH0JTxis4RDDfZs" // hier deinen echten VAPID Key reinsetzen
+      vapidKey: "BLXKIJi31DHoEr083zJkotuGDcPQFmBiM5KHwXHahGpIbcLliw0pyEinaPbIg64gaM2KxIZhwH0JTxis4RDDfZs", // DEIN VAPID KEY
+      serviceWorkerRegistration: registration
     });
   })
   .then((currentToken) => {
     if (currentToken) {
       console.log("📲 Push Token:", currentToken);
-      // TODO: Token an deinen Server senden oder speichern
+      // Token speichern oder senden
     } else {
       console.log('Keine Berechtigung für Push oder Token nicht verfügbar.');
     }
