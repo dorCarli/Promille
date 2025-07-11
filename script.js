@@ -16,26 +16,6 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('firebase-messaging-sw.js')
     .then((registration) => {
       console.log('Service Worker registered with scope:', registration.scope);
-
-      const messaging = firebase.messaging();
-      messaging.useServiceWorker(registration);
-
-      messaging.getToken({ vapidKey: 'BLXKIJi31DHoEr083zJkotuGDcPQFmBiM5KHwXHahGpIbcLliw0pyEinaPbIg64gaM2KxIZhwH0JTxis4RDDfZs' })  // <-- VAPID-Key anpassen!
-        .then((currentToken) => {
-          if (currentToken) {
-            console.log('Token:', currentToken);
-            // Hier kannst du den Token speichern oder ans Backend schicken
-          } else {
-            console.log('Kein Token verfügbar. Nutzer muss Berechtigungen erteilen.');
-          }
-        })
-        .catch((err) => {
-          console.error('Fehler beim Token holen:', err);
-        });
-    })
-    .catch((err) => {
-      console.error('Service Worker Registrierung fehlgeschlagen:', err);
-    });
 } else {
   console.warn('Service Worker wird vom Browser nicht unterstützt.');
 }
