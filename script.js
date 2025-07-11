@@ -14,7 +14,7 @@ const firebaseConfig = {
 // Firebase initialisieren
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
-
+const db = firebase.database(); // Falls du Firebase DB noch nicht initialisiert hast
 // Service Worker registrieren und Push-Token holen
 navigator.serviceWorker.register('firebase-messaging-sw.js')
   .then((registration) => {
@@ -54,7 +54,6 @@ const drinksData = [
 let currentDrinkIndex = 0;
 
 // === Funktionen ===
-
 function updateDrinkLabels() {
 document.getElementById("amountLabel").innerText = parseFloat(document.getElementById("amount").value).toFixed(2);
 document.getElementById("alcLabel").innerText = parseFloat(document.getElementById("alcohol").value).toFixed(1);
@@ -186,9 +185,6 @@ function loginAndSaveUser() {
     img.classList.remove("swipe");
   }, 3200);
 }
-// Firebase Realtime Database initialisieren
-const db = firebase.database(); // Falls du Firebase DB noch nicht initialisiert hast
-
 // Prüft, ob der Benutzername bereits in der DB existiert
 function checkUsernameExists(username) {
   const safeName = sanitizeKey(username); // Nutze deine eigene Funktion, um Sonderzeichen zu entfernen
