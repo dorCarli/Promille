@@ -3,21 +3,6 @@ function checkUsernameExists(username) {
     .then(snapshot => snapshot.exists());
 }
 
-// Firebase-Konfiguration
-const firebaseConfig = {
-  apiKey: "AIzaSyD43TYRuIZxI1pS_noOzlKCIEzUm8Q7FiQ",
-  authDomain: "promille-b4bd3.firebaseapp.com",
-  databaseURL: "https://promille-b4bd3-default-rtdb.europe-west1.firebasedatabase.app/",
-  projectId: "promille-b4bd3",
-  storageBucket: "promille-b4bd3.appspot.com",
-  messagingSenderId: "627353030877",
-  appId: "1:627353030877:web:18285915baa3744ebbcb34",
-};
-
-// Firebase initialisieren
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
 // Hilfsfunktion: ungültige Zeichen in Firebase-Schlüssel ersetzen
 function sanitizeKey(name) {
   return name.replace(/[.#$/\[\]]/g, "_");
