@@ -9,7 +9,7 @@ const firebaseConfig = {
   messagingSenderId: "627353030877",
   appId: "1:627353030877:web:18285915baa3744ebbcb34",
 };
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 // Firebase App initialisieren (nur einmal!)
 firebase.initializeApp(firebaseConfig);
 
@@ -441,3 +441,102 @@ setInterval(() => {
   autoSubmitScore();
   updateLeaderboard();
 }, 10000);
+const statusBtn = document.getElementById("status");
+
+statusBtn.addEventListener("click", () => {
+  if (!statusBtn.classList.contains("active")) {
+    statusBtn.classList.add("active");
+
+    gsap.to(statusBtn, {
+      keyframes: [{
+        '--left-wing-first-x': 50,
+        '--left-wing-first-y': 100,
+        '--right-wing-second-x': 50,
+        '--right-wing-second-y': 100,
+        duration: 0.2,
+        onComplete() {
+          gsap.set(statusBtn, {
+            '--left-wing-first-y': 0,
+            '--left-wing-second-x': 40,
+            '--left-wing-second-y': 100,
+            '--left-wing-third-x': 0,
+            '--left-wing-third-y': 100,
+            '--left-body-third-x': 40,
+            '--right-wing-first-x': 50,
+            '--right-wing-first-y': 0,
+            '--right-wing-second-x': 60,
+            '--right-wing-second-y': 100,
+            '--right-wing-third-x': 100,
+            '--right-wing-third-y': 100,
+            '--right-body-third-x': 60
+          });
+        }
+      }, {
+        '--left-wing-third-x': 20,
+        '--left-wing-third-y': 90,
+        '--left-wing-second-y': 90,
+        '--left-body-third-y': 90,
+        '--right-wing-third-x': 80,
+        '--right-wing-third-y': 90,
+        '--right-body-third-y': 90,
+        '--right-wing-second-y': 90,
+        duration: 0.2
+      }, {
+        '--rotate': 50,
+        '--left-wing-third-y': 95,
+        '--left-wing-third-x': 27,
+        '--right-body-third-x': 45,
+        '--right-wing-second-x': 45,
+        '--right-wing-third-x': 60,
+        '--right-wing-third-y': 83,
+        duration: 0.25
+      }, {
+        '--rotate': 55,
+        '--plane-x': -8,
+        '--plane-y': 24,
+        duration: 0.2
+      }, {
+        '--rotate': 40,
+        '--plane-x': 45,
+        '--plane-y': -180,
+        '--plane-opacity': 0,
+        duration: 0.3,
+        onComplete() {
+          setTimeout(() => {
+            statusBtn.removeAttribute("style");
+            gsap.fromTo(statusBtn, {
+              opacity: 0,
+              y: -8
+            }, {
+              opacity: 1,
+              y: 0,
+              clearProps: true,
+              duration: 0.3,
+              onComplete() {
+                statusBtn.classList.remove("active");
+              }
+            });
+          }, 2000);
+        }
+      }]
+    });
+
+    // Text-Animation
+    const getVar = variable => getComputedStyle(statusBtn).getPropertyValue(variable);
+
+    gsap.to(statusBtn, {
+      keyframes: [{
+        '--text-opacity': 0,
+        '--border-radius': 0,
+        '--left-wing-background': getVar('--primary-darkest'),
+        '--right-wing-background': getVar('--primary-darkest'),
+        duration: 0.1
+      }, {
+        '--left-wing-background': getVar('--primary'),
+        '--right-wing-background': getVar('--primary'),
+        duration: 0.1
+      }]
+    });
+
+  } // Ende if
+}); // Ende EventListener
