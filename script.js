@@ -1,7 +1,6 @@
 // Inhalte aus Speicher laden
 let userData = {};
 let drinks = [];
-let currentToken = null;
 
 const drinksData = [
 { type: "bier", name: "Bier", img: "images/bier.png", amount: 0.33, alc: 5.3 },
@@ -189,7 +188,7 @@ function animatePromilleButton() {
   const user = JSON.parse(localStorage.getItem("userData") || "{}");
   if (!user.username) return;
 
-  fetch("https://senddrinknotification-tzjx3bgxmq-uc.a.run.app", {
+  fetch("https://us-central1-promille-b4bd3.cloudfunctions.net/sendDrinkNotification", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: user.username })
@@ -242,29 +241,6 @@ img.style.transform = "translateX(0)";
 
 
 window.onload = () => {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/Promille/firebase-messaging-sw.js')
-      .then((registration) => {
-        console.log('Service Worker registered with scope:', registration.scope);
-        if (firebase && firebase.messaging) {
-          const messaging = firebase.messaging();
-          messaging.useServiceWorker(registration);
-          messaging.getToken({ 
-            vapidKey: "BLXKIJi31DHoEr083zJkotuGDcPQFmBiM5KHwXHahGpIbcLliw0pyEinaPbIg64gaM2KxIZhwH0JTxis4RDDfZs" 
-          })
-          .then(token => {
-            currentToken = token;
-            console.log("📲 Aktuelles Token:", token);
-          })
-          .catch(err => console.error("❌ Token konnte nicht geladen werden:", err));
-        }
-      })
-      .catch(error => {
-        console.error('Service Worker Registrierung fehlgeschlagen:', error);
-      });
-  } else {
-    console.warn('Service Worker werden in diesem Browser nicht unterstützt.');
-  }
 const saved = localStorage.getItem("userData");
 if (saved) {
 userData = JSON.parse(saved);
@@ -290,17 +266,6 @@ img.classList.add("swipe");
 setTimeout(() => {
 img.classList.remove("swipe");
 }, 3200);
-// Firebase Messaging Token laden
-if (firebase && firebase.messaging) {
-  const messaging = firebase.messaging();
-  messaging.getToken({ vapidKey: "BLXKIJi31DHoEr083zJkotuGDcPQFmBiM5KHwXHahGpIbcLliw0pyEinaPbIg64gaM2KxIZhwH0JTxis4RDDfZs" }) // deinen VAPID Key einsetzen
-    .then(token => {
-      currentToken = token;
-      console.log("📲 Aktuelles Token:", token);
-    })
-    .catch(err => console.error("❌ Token konnte nicht geladen werden:", err));
-}
-
 };
 function notifyWithSound(title, body, soundUrl) {
 if (!("Notification" in window)) {
@@ -333,26 +298,22 @@ btn.classList.add('shake-bottom'); // Animation hinzufügen
 });
 function sendDrinkNotification() {
   const user = JSON.parse(localStorage.getItem("userData") || "{}");
-  if (!user.username || !currentToken) {
-    alert("Benutzername oder Token fehlt.");
-    return;
-  }
+  if (!user.username) return;
 
   fetch("https://us-central1-promille-b4bd3.cloudfunctions.net/sendDrinkNotification", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: user.username, token: currentToken }),
+    body: JSON.stringify({ name: user.username }),
   })
     .then((res) => {
       if (!res.ok) throw new Error("Netzwerkantwort war nicht ok");
       return res.json();
     })
     .then((data) => {
-      console.log("✅ Antwort von Cloud Function:", data);
+      console.log("Antwort von Cloud Function:", data);
       notifyWithSound("Nachricht versendet", "Alle wurden informiert.");
     })
     .catch((err) => {
-      console.error("❌ Fehler beim Senden der Nachricht:", err);
-      alert("Fehler beim Senden der Nachricht");
+      console.error("Fehler beim Senden der Nachricht:", err);
     });
 }
