@@ -150,13 +150,42 @@ setTimeout(() => btn.disabled = false, 1000);
 }
 
 function loginAndSaveUser() {
-const username = document.getElementById("username").value.trim();
-const weight = parseFloat(document.getElementById("weight").value);
-const gender = document.getElementById("gender").value;
+  const username = document.getElementById("username").value.trim();
+  const weight = parseFloat(document.getElementById("weight").value);
+  const gender = document.getElementById("gender").value;
 
-if (!username || isNaN(weight) || weight <= 0) {
-alert("Bitte gültigen Namen und Gewicht eingeben.");
-return;
+  if (!username || isNaN(weight) || weight <= 0) {
+    alert("Bitte gültigen Namen und Gewicht eingeben.");
+    return;
+  }
+
+  userData = { username, weight, gender };
+  localStorage.setItem("userData", JSON.stringify(userData));
+
+  // Benutzer in Firebase speichern
+  const safeName = sanitizeKey(username);
+  db.ref('users/' + safeName).set(userData)
+    .then(() => {
+      console.log("Benutzer gespeichert in DB:", username);
+    })
+    .catch(err => {
+      console.error("Fehler beim Speichern des Benutzers:", err);
+    });
+
+  document.getElementById("setup").style.display = "none";
+  document.getElementById("drinks").style.display = "block";
+  document.getElementById("status").style.display = "block";
+
+  drinks = JSON.parse(localStorage.getItem("drinks") || "[]");
+  updatePromille();
+  updateDrinkUI();
+
+  const img = document.getElementById("drinkImage");
+  img.classList.add("swipe");
+
+  setTimeout(() => {
+    img.classList.remove("swipe");
+  }, 3200);
 }
 
 userData = { username, weight, gender };
@@ -176,6 +205,21 @@ setTimeout(() => {
 img.classList.remove("swipe");
 }, 3200);
 
+}
+// Firebase Realtime Database initialisieren
+const db = firebase.database(); // Falls du Firebase DB noch nicht initialisiert hast
+
+// Prüft, ob der Benutzername bereits in der DB existiert
+function checkUsernameExists(username) {
+  const safeName = sanitizeKey(username); // Nutze deine eigene Funktion, um Sonderzeichen zu entfernen
+  return db.ref('users/' + safeName).once('value').then(snapshot => {
+    return snapshot.exists(); // true, wenn schon vorhanden
+  });
+}
+
+// Beispiel sanitizeKey-Funktion (nur Buchstaben und Zahlen)
+function sanitizeKey(key) {
+  return key.replace(/[^a-zA-Z0-9_-]/g, '');
 }
 
 function startPromilleBerechnung() {
