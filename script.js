@@ -184,24 +184,31 @@ function animatePromilleButton() {
   status.classList.add("animate");
   setTimeout(() => status.classList.remove("animate"), 300);
 
-  // Push-Nachricht an andere senden
+  // Benutzername aus localStorage holen
   const user = JSON.parse(localStorage.getItem("userData") || "{}");
   if (!user.username) return;
 
+  // POST-Anfrage an Cloud Function schicken
   fetch("https://us-central1-promille-b4bd3.cloudfunctions.net/sendDrinkNotification", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: user.username })
   })
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error("Netzwerkantwort war nicht ok");
+      return res.json();
+    })
     .then(data => {
-      console.log("Antwort:", data);
-      notifyWithSound("Nachricht versendet", "Alle wurden benachrichtigt.");
+      console.log("Antwort von Cloud Function:", data);
+      // Optional: Rückmeldung an Nutzer
+      alert("Benachrichtigung gesendet!");
     })
     .catch(err => {
       console.error("Fehler beim Senden der Nachricht:", err);
+      alert("Fehler beim Senden der Benachrichtigung.");
     });
 }
+
 
 
 // Swipe
