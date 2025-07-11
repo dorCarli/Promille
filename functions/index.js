@@ -8,6 +8,10 @@ const corsHandler = cors({
   origin: "https://dorcarli.github.io", // Erlaube deine Web-App-URL hier
 });
 
+function sanitizeKey(key) {
+  return key.replace(/[.$#[\]/]/g, "_");
+}
+
 exports.sendDrinkNotification = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
     if (req.method === 'OPTIONS') {
@@ -31,7 +35,12 @@ exports.sendDrinkNotification = functions.https.onRequest((req, res) => {
       const rawTokens = tokensSnapshot.val();
       console.log("📦 Rohdaten aus DB:", rawTokens);
 
-      const tokens = rawTokens ? Object.values(rawTokens) : [];
+      const tokens = [];
+      for (const [key, token] of Object.entries(rawTokens || {})) {
+        if (key !== sanitizeKey(name)) {
+          tokens.push(token);
+        }
+      }
 
       if (tokens.length === 0) {
         console.log("⚠️ Keine Tokens gefunden.");
@@ -43,7 +52,7 @@ exports.sendDrinkNotification = functions.https.onRequest((req, res) => {
       const payload = {
         notification: {
           title: "Trinkbenachrichtigung",
-          body: `${name} möchte trinken!`, // ✅ Korrektur hier
+          body: `${name} möchte trinken!`,
         },
       };
 
@@ -51,7 +60,7 @@ exports.sendDrinkNotification = functions.https.onRequest((req, res) => {
       console.log("✅ Antwort von FCM:", response);
 
       return res.status(200).json({
-        message: `Nachricht von ${name} gesendet`, // ✅ Korrektur hier
+        message: `Nachricht von ${name} gesendet`,
         successCount: response.successCount || 0,
         failureCount: response.failureCount || 0
       });
