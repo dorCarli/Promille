@@ -1,4 +1,65 @@
-// Inhalte aus Speicher laden
+// --- Firebase Setup & Imports ---
+// Wichtig: Dieses Script MUSS als <script type="module"> eingebunden werden, damit Imports funktionieren.
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging.js";
+import { getDatabase, ref, set, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+// Firebase-Konfiguration
+const firebaseConfig = {
+  apiKey: "AIzaSyD43TYRuIZxI1pS_noOzlKCIEzUm8Q7FiQ",
+  authDomain: "promille-b4bd3.firebaseapp.com",
+  projectId: "promille-b4bd3",
+  messagingSenderId: "627353030877",
+  appId: "1:627353030877:web:218cd951414fe996bbcb34",
+  databaseURL: "https://promille-b4bd3-default-rtdb.europe-west1.firebasedatabase.app"
+};
+
+// Firebase initialisieren
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
+const db = getDatabase(app);
+
+// Hilfsfunktion: Firebase-kompatible Keys erstellen
+function sanitizeKey(key) {
+  return key.replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
+// Service Worker registrieren und Token holen
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/firebase-messaging-sw.js')
+    .then(registration => {
+      console.log('✅ Service Worker registriert:', registration);
+
+      return getToken(messaging, {
+        vapidKey: "BDLwD5vTQlHgduK4kGV88JpLxDDzHRMwhA7lzhshxyONlfK1Y7zxy13zCN2UY_5d9vYz2kO-i5-TGUrpfgEyQRU",
+        serviceWorkerRegistration: registration
+      });
+    })
+    .then(currentToken => {
+      console.log("✅ Token erhalten:", currentToken);
+
+      const user = JSON.parse(localStorage.getItem("userData") || "{}");
+      if (!user.username) return;
+
+      const tokenRef = ref(db, 'fcmTokens/' + sanitizeKey(user.username));
+      set(tokenRef, currentToken);
+    })
+    .catch(err => {
+      console.error("❌ Fehler beim Token holen oder Service Worker:", err);
+    });
+} else {
+  console.warn("Service Worker wird von diesem Browser nicht unterstützt.");
+}
+
+// Vordergrund-Nachrichten abfangen und Notification anzeigen
+onMessage(messaging, (payload) => {
+  console.log("🔔 Nachricht im Vordergrund:", payload);
+  const title = payload.notification?.title || "Neue Nachricht";
+  const body = payload.notification?.body || "";
+  new Notification(title, { body });
+});
+
+// === Inhalte aus Speicher laden ===
 let userData = {};
 let drinks = [];
 
@@ -10,7 +71,6 @@ const drinksData = [
   { type: "shot", name: "Shot", img: "images/shot.png", amount: 0.04, alc: 30.0 },
   { type: "veneziano", name: "Veneziano", img: "images/veneziano.png", amount: 0.4, alc: 10.0 }
 ];
-
 
 let currentDrinkIndex = 0;
 
@@ -73,7 +133,7 @@ function updatePromille() {
   promilleSpan.innerText = promille;
   const val = parseFloat(promille);
   promilleSpan.style.color = val >= 1.5 ? "green" : val <= 0.1 ? "red" : "orange";
-  if (promille >= 1){
+  if (promille >= 1) {
     notifyWithSound("Du hast 1 Promille erreicht!");
   }
 }
@@ -156,6 +216,8 @@ function startPromilleBerechnung() {
   });
 }
 
+// Annahme: checkUsernameExists ist extern implementiert, z.B. mit Firebase DB Abfrage
+
 function resetApp() {
   if (confirm("Zurücksetzen?")) {
     const user = JSON.parse(localStorage.getItem("userData") || "{}");
@@ -163,7 +225,8 @@ function resetApp() {
 
     if (username) {
       const safeName = sanitizeKey(username);
-      db.ref("scores/" + safeName).remove()
+      // Score löschen aus Firebase DB
+      remove(ref(db, "scores/" + safeName))
         .then(() => {
           console.log("Score gelöscht für:", username);
         })
