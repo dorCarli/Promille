@@ -1,6 +1,47 @@
 // Inhalte aus Speicher laden
 let userData = {};
 let drinks = [];
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyD43TYRuIZxI1pS_noOzlKCIEzUm8Q7FiQ",
+  authDomain: "promille-b4bd3.firebaseapp.com",
+  projectId: "promille-b4bd3",
+  storageBucket: "promille-b4bd3.firebasestorage.app",
+  messagingSenderId: "627353030877",
+  appId: "1:627353030877:web:18285915baa3744ebbcb34",
+};
+
+// Firebase initialisieren
+firebase.initializeApp(firebaseConfig);
+const messaging = firebase.messaging();
+
+// Service Worker registrieren und Push-Token holen
+navigator.serviceWorker.register('firebase-messaging-sw.js')
+  .then((registration) => {
+    messaging.useServiceWorker(registration);
+
+    return messaging.getToken({
+      vapidKey: "BLXKIJi31DHoEr083zJkotuGDcPQFmBiM5KHwXHahGpIbcLliw0pyEinaPbIg64gaM2KxIZhwH0JTxis4RDDfZs" // hier deinen echten VAPID Key reinsetzen
+    });
+  })
+  .then((currentToken) => {
+    if (currentToken) {
+      console.log("📲 Push Token:", currentToken);
+      // TODO: Token an deinen Server senden oder speichern
+    } else {
+      console.log('Keine Berechtigung für Push oder Token nicht verfügbar.');
+    }
+  })
+  .catch((err) => {
+    console.error('Fehler beim Token holen:', err);
+  });
+
+// Push-Nachrichten im Vordergrund behandeln
+messaging.onMessage((payload) => {
+  console.log('Nachricht empfangen:', payload);
+  alert(payload.notification.title + "\n" + payload.notification.body);
+});
+
 
 const drinksData = [
 { type: "bier", name: "Bier", img: "images/bier.png", amount: 0.33, alc: 5.3 },
