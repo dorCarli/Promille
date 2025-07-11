@@ -1,4 +1,26 @@
-// Inhalte aus Speicher laden
+// --- Firebase konfigurieren und initialisieren ---
+// Ersetze die Werte mit deinen Firebase-Projektangaben
+const firebaseConfig = {
+  apiKey: "AIzaSyD43TYRuIZxI1pS_noOzlKCIEzUm8Q7FiQ",
+  authDomain: "promille-b4bd3.firebaseapp.com",
+  databaseURL: "https://promille-b4bd3-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "promille-b4bd3",
+  storageBucket: "promille-b4bd3.firebasestorage.app",
+  messagingSenderId: "627353030877",
+  appId: "1:627353030877:web:18285915baa3744ebbcb34",
+};
+
+// Firebase App initialisieren (nur einmal!)
+firebase.initializeApp(firebaseConfig);
+
+// Realtime Database Referenz initialisieren
+const db = firebase.database();
+
+// Firebase Messaging initialisieren (compat)
+const messaging = firebase.messaging();
+
+
+// --- App-Variablen ---
 let userData = {};
 let drinks = [];
 
@@ -13,20 +35,25 @@ const drinksData = [
 
 let currentDrinkIndex = 0;
 
-// === Firebase Messaging (compat) Setup ===
-const messaging = firebase.messaging();
 
+// --- Hilfsfunktion: Benutzernamen für Firebase-Key "säubern" ---
+function sanitizeKey(name) {
+  return name.replace(/[^a-zA-Z0-9-_]/g, "_");
+}
+
+
+// --- Push-Berechtigung anfragen und Token speichern ---
 function requestPushPermissionAndToken() {
   Notification.requestPermission().then(permission => {
     if (permission === 'granted') {
       messaging.getToken({
-        vapidKey: 'BLXKIJi31DHoEr083zJkotuGDcPQFmBiM5KHwXHahGpIbcLliw0pyEinaPbIg64gaM2KxIZhwH0JTxis4RDDfZs'
+        vapidKey: 'BLXKIJi31DHoEr083zJkotuGDcPQFmBiM5KHwXHahGpIbcLliw0pyEinaPbIg64gaM2KxIZhwH0JTxis4RDDfZs' // VAPID-Key von Firebase Console einfügen
       }).then(token => {
         console.log('Push Token erhalten:', token);
         const user = JSON.parse(localStorage.getItem("userData") || "{}");
         if (user.username) {
           const safeName = sanitizeKey(user.username);
-          firebase.database().ref('fcmTokens/' + safeName).set(token)
+          db.ref('fcmTokens/' + safeName).set(token)
             .then(() => console.log('Token gespeichert in DB'))
             .catch(err => console.error('Fehler DB speichern:', err));
         }
@@ -37,13 +64,15 @@ function requestPushPermissionAndToken() {
   });
 }
 
-// === Funktionen ===
 
+// --- Update Anzeige der Trinkmenge und Alkoholgehalt ---
 function updateDrinkLabels() {
   document.getElementById("amountLabel").innerText = parseFloat(document.getElementById("amount").value).toFixed(2);
   document.getElementById("alcLabel").innerText = parseFloat(document.getElementById("alcohol").value).toFixed(1);
 }
 
+
+// --- Update Drink Bild und Eingabewerte ---
 function updateDrinkUI() {
   const drink = drinksData[currentDrinkIndex];
   const img = document.getElementById("drinkImage");
@@ -56,17 +85,21 @@ function updateDrinkUI() {
   updateDrinkLabels();
 }
 
+
+// --- Trinkzeit in ms berechnen ---
 function getTrinkzeitByMenge(menge) {
-  return menge * 30 * 60 * 1000;
+  return menge * 30 * 60 * 1000; // Menge * 30 Minuten in ms
 }
 
+
+// --- Promille berechnen ---
 function calculatePromille() {
   if (!userData.weight || !userData.gender) return 0;
 
   const r = userData.gender === "male" ? 0.68 : 0.55;
   const now = Date.now();
 
-  const abbauRate = userData.gender === "male" ? 0.12 : 0.10;
+  const abbauRate = userData.gender === "male" ? 0.12 : 0.10; // g/kg/h
   const abbauGrammProStd = abbauRate * userData.weight * r;
 
   let aufgenommen = 0;
@@ -90,6 +123,8 @@ function calculatePromille() {
   return (netto / (userData.weight * r)).toFixed(2);
 }
 
+
+// --- Promillewert im UI aktualisieren ---
 function updatePromille() {
   const promille = calculatePromille();
   const promilleSpan = document.getElementById("promille");
@@ -101,6 +136,8 @@ function updatePromille() {
   }
 }
 
+
+// --- Drink hinzufügen ---
 function addDrink() {
   const now = Date.now();
   const amount = parseFloat(document.getElementById("amount").value);
@@ -131,6 +168,8 @@ function addDrink() {
   setTimeout(() => btn.disabled = false, 1000);
 }
 
+
+// --- Benutzer-Login und speichern ---
 function loginAndSaveUser() {
   const username = document.getElementById("username").value.trim();
   const weight = parseFloat(document.getElementById("weight").value);
@@ -162,6 +201,16 @@ function loginAndSaveUser() {
   requestPushPermissionAndToken();
 }
 
+
+// --- Benutzername prüfen ob schon vergeben ---
+function checkUsernameExists(username) {
+  const safeName = sanitizeKey(username);
+  return db.ref("scores/" + safeName).once("value")
+    .then(snapshot => snapshot.exists());
+}
+
+
+// --- Start der Promille-Berechnung (Login) ---
 function startPromilleBerechnung() {
   const username = document.getElementById("username").value.trim();
   if (!username) {
@@ -180,6 +229,8 @@ function startPromilleBerechnung() {
   });
 }
 
+
+// --- App zurücksetzen ---
 function resetApp() {
   if (confirm("Zurücksetzen?")) {
     const user = JSON.parse(localStorage.getItem("userData") || "{}");
@@ -199,19 +250,18 @@ function resetApp() {
   }
 }
 
+
+// --- Animation beim Klick auf Status-Button + Push senden ---
 function animatePromilleButton() {
   const status = document.getElementById("status");
   if (!status) return;
 
-  // Animation abspielen
   status.classList.add("animate");
   setTimeout(() => status.classList.remove("animate"), 300);
 
-  // Benutzername aus localStorage holen
   const user = JSON.parse(localStorage.getItem("userData") || "{}");
   if (!user.username) return;
 
-  // POST-Anfrage an Cloud Function schicken
   fetch("https://us-central1-promille-b4bd3.cloudfunctions.net/sendDrinkNotification", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -231,7 +281,8 @@ function animatePromilleButton() {
     });
 }
 
-// Swipe-Handling
+
+// --- Swipe-Handling für Drink-Bild ---
 let startX = 0, isDragging = false;
 const img = document.getElementById("drinkImage");
 
@@ -265,6 +316,8 @@ img.addEventListener("pointercancel", () => {
   img.style.transform = "translateX(0)";
 });
 
+
+// --- Window onload: Initialisierung ---
 window.onload = () => {
   const saved = localStorage.getItem("userData");
   if (saved) {
@@ -283,7 +336,7 @@ window.onload = () => {
   updateDrinkUI();
   updatePromille();
 
-  // Alle 5 Sekunden Promille aktualisieren
+  // Promille alle 5 Sekunden aktualisieren
   setInterval(updatePromille, 5000);
 
   const img = document.getElementById("drinkImage");
@@ -294,6 +347,8 @@ window.onload = () => {
   }, 3200);
 };
 
+
+// --- Benachrichtigung mit Sound ---
 function notifyWithSound(title, body, soundUrl) {
   if (!("Notification" in window)) {
     console.warn("Browser unterstützt keine Benachrichtigungen.");
@@ -314,12 +369,14 @@ function notifyWithSound(title, body, soundUrl) {
   }
 }
 
+
+// --- Button-Shake Animation (für Buttons mit Klasse shake-btn) ---
 const buttons = document.querySelectorAll('.shake-btn');
 
 buttons.forEach(btn => {
   btn.addEventListener('click', () => {
-    btn.classList.remove('shake-bottom'); // Entferne alte Animation
-    void btn.offsetWidth; // Erzwinge Reflow, damit sie neu abgespielt wird
-    btn.classList.add('shake-bottom'); // Animation hinzufügen
+    btn.classList.remove('shake-bottom'); // alte Animation entfernen
+    void btn.offsetWidth;                 // Reflow erzwingen
+    btn.classList.add('shake-bottom');   // neue Animation starten
   });
 });
