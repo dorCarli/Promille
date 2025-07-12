@@ -132,7 +132,7 @@ function updatePromille() {
   const val = parseFloat(promille);
   promilleSpan.style.color = val >= 1.5 ? "green" : val <= 0.1 ? "red" : "orange";
   if (promille >= 1) {
-    notifyWithSound("Du hast 1 Promille erreicht!");
+    //notifyWithSound("Du hast 1 Promille erreicht!");
   }
 }
 
