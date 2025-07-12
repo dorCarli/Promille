@@ -131,10 +131,10 @@ function updatePromille() {
   promilleSpan.innerText = promille;
   const val = parseFloat(promille);
   promilleSpan.style.color = val >= 1.5 ? "green" : val <= 0.1 ? "red" : "orange";
-  //if (promille >= 1) {
-    //notifyWithSound("Du hast 1 Promille erreicht!");
-  //}
-//}
+  if (promille >= 1) {
+    notifyWithSound("Du hast 1 Promille erreicht!");
+  }
+}
 
 
 // --- Drink hinzufügen ---
@@ -299,7 +299,7 @@ img.addEventListener("pointerdown", (e) => {
 img.addEventListener("pointermove", (e) => {
   if (!isDragging) return;
   const dx = e.clientX - startX;
-  img.style.transform = `translateX(${dx}px)`;
+  img.style.transform = translateX(${dx}px);
 });
 
 img.addEventListener("pointerup", (e) => {
@@ -422,7 +422,7 @@ function updateLeaderboard() {
       tbody.innerHTML = "";
       top4.forEach((entry, i) => {
         const row = document.createElement("tr");
-        row.innerHTML = `<td>${i + 1}</td><td>${entry.name}</td><td>${entry.score.toFixed(2)}‰</td>`;
+        row.innerHTML = <td>${i + 1}</td><td>${entry.name}</td><td>${entry.score.toFixed(2)}‰</td>;
         tbody.appendChild(row);
       });
     }
@@ -430,7 +430,7 @@ function updateLeaderboard() {
     const top4Section = document.getElementById("top4Section");
     if (top4Section) {
       top4Section.innerHTML = top4.map((e, i) =>
-        `${i + 1}. ${e.name}: ${e.score.toFixed(2)}‰`
+        ${i + 1}. ${e.name}: ${e.score.toFixed(2)}‰
       ).join("<br>");
     }
   });
