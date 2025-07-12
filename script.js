@@ -126,9 +126,6 @@ function calculatePromille() {
 
 // --- Promillewert im UI aktualisieren ---
 
-}
-
-
 // --- Drink hinzufügen ---
 function addDrink() {
   const now = Date.now();
