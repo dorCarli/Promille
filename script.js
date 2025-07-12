@@ -1,4 +1,4 @@
-// --- Firebase konfigurieren und initialisieren ---
+// --- Firebase konfigurieren ---
 // Ersetze die Werte mit deinen Firebase-Projektangaben
 const firebaseConfig = {
   apiKey: "AIzaSyD43TYRuIZxI1pS_noOzlKCIEzUm8Q7FiQ",
@@ -10,15 +10,9 @@ const firebaseConfig = {
   appId: "1:627353030877:web:18285915baa3744ebbcb34",
 };
 
-// Firebase App initialisieren (nur einmal!)
-firebase.initializeApp(firebaseConfig);
-
-// Realtime Database Referenz initialisieren
-const db = firebase.database();
-
-// Firebase Messaging initialisieren (compat)
-const messaging = firebase.messaging();
-
+// Firebase Variablen global deklarieren (noch nicht initialisiert)
+let db;
+let messaging;
 
 // --- App-Variablen ---
 let userData = {};
@@ -35,12 +29,10 @@ const drinksData = [
 
 let currentDrinkIndex = 0;
 
-
 // --- Hilfsfunktion: Benutzernamen für Firebase-Key "säubern" ---
 function sanitizeKey(name) {
   return name.replace(/[^a-zA-Z0-9-_]/g, "_");
 }
-
 
 // --- Push-Berechtigung anfragen und Token speichern ---
 function requestPushPermissionAndToken() {
@@ -64,13 +56,11 @@ function requestPushPermissionAndToken() {
   });
 }
 
-
 // --- Update Anzeige der Trinkmenge und Alkoholgehalt ---
 function updateDrinkLabels() {
   document.getElementById("amountLabel").innerText = parseFloat(document.getElementById("amount").value).toFixed(2);
   document.getElementById("alcLabel").innerText = parseFloat(document.getElementById("alcohol").value).toFixed(1);
 }
-
 
 // --- Update Drink Bild und Eingabewerte ---
 function updateDrinkUI() {
@@ -85,12 +75,10 @@ function updateDrinkUI() {
   updateDrinkLabels();
 }
 
-
 // --- Trinkzeit in ms berechnen ---
 function getTrinkzeitByMenge(menge) {
   return menge * 30 * 60 * 1000; // Menge * 30 Minuten in ms
 }
-
 
 // --- Promille berechnen ---
 function calculatePromille() {
@@ -123,7 +111,6 @@ function calculatePromille() {
   return (netto / (userData.weight * r)).toFixed(2);
 }
 
-
 // --- Promillewert im UI aktualisieren ---
 function updatePromille() {
   const promille = calculatePromille();
@@ -135,7 +122,6 @@ function updatePromille() {
     notifyWithSound("Du hast 1 Promille erreicht!");
   }
 }
-
 
 // --- Drink hinzufügen ---
 function addDrink() {
@@ -167,7 +153,6 @@ function addDrink() {
 
   setTimeout(() => btn.disabled = false, 1000);
 }
-
 
 // --- Benutzer-Login und speichern ---
 function loginAndSaveUser() {
@@ -201,14 +186,12 @@ function loginAndSaveUser() {
   requestPushPermissionAndToken();
 }
 
-
 // --- Benutzername prüfen ob schon vergeben ---
 function checkUsernameExists(username) {
   const safeName = sanitizeKey(username);
   return db.ref("scores/" + safeName).once("value")
     .then(snapshot => snapshot.exists());
 }
-
 
 // --- Start der Promille-Berechnung (Login) ---
 function startPromilleBerechnung() {
@@ -229,7 +212,6 @@ function startPromilleBerechnung() {
   });
 }
 
-
 // --- App zurücksetzen ---
 function resetApp() {
   if (confirm("Zurücksetzen?")) {
@@ -249,7 +231,6 @@ function resetApp() {
     location.reload();
   }
 }
-
 
 // --- Animation beim Klick auf Status-Button + Push senden ---
 function animatePromilleButton() {
@@ -277,7 +258,6 @@ function animatePromilleButton() {
     })
     .then(data => {
       console.log("Antwort von Cloud Function:", data);
-      // Optional: Du kannst alert() durch eine sanfte UI-Nachricht ersetzen
       alert("Benachrichtigung gesendet!");
     })
     .catch(err => {
@@ -320,9 +300,13 @@ img.addEventListener("pointercancel", () => {
   img.style.transform = "translateX(0)";
 });
 
-
 // --- Window onload: Initialisierung ---
 window.onload = () => {
+  // Firebase erst hier initialisieren
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+  messaging = firebase.messaging();
+
   const saved = localStorage.getItem("userData");
   if (saved) {
     userData = JSON.parse(saved);
@@ -350,7 +334,6 @@ window.onload = () => {
     img.classList.remove("swipe");
   }, 3200);
 };
-
 
 // --- Benachrichtigung mit Sound ---
 function notifyWithSound(title, body, soundUrl) {
@@ -383,6 +366,7 @@ buttons.forEach(btn => {
     btn.classList.add('shake-bottom');   // neue Animation starten
   });
 });
+
 // --- Score speichern ---
 function autoSubmitScore() {
   const user = JSON.parse(localStorage.getItem("userData") || "{}");
