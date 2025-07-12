@@ -373,7 +373,6 @@ function notifyWithSound(title, body, soundUrl) {
   }
 }
 
-
 // --- Button-Shake Animation (für Buttons mit Klasse shake-btn) ---
 const buttons = document.querySelectorAll('.shake-btn');
 
